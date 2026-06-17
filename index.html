@@ -506,7 +506,11 @@
 
   async function saveImage() {
     const wrap = document.getElementById('capture-wrap');
-
+    wrap.style.height = "auto";
+    wrap.style.overflow = "visible";
+    document.body.style.height = "auto";
+  
+    
     // 버튼 숨기고 캡처
     wrap.classList.add('print-mode');
     document.querySelector('.btn-wrap').style.display = 'none';
