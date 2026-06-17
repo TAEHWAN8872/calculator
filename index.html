@@ -508,7 +508,7 @@
     const wrap = document.getElementById('capture-wrap');
     wrap.style.height = "auto";
     wrap.style.overflow = "visible";
-    document.body.style.height = "auto";
+    
   
     
     // 버튼 숨기고 캡처
@@ -518,8 +518,14 @@
     await new Promise(r => setTimeout(r, 100)); // 렌더 대기
 
     try {
+
+       alert(
+      "scrollHeight=" + wrap.scrollHeight +
+      "\noffsetHeight=" + wrap.offsetHeight
+    );
+      
       const fullWidth = wrap.scrollWidth;
-const fullHeight = wrap.scrollHeight;
+      const fullHeight = wrap.scrollHeight;
 
 const canvas = await html2canvas(wrap, {
   scale: 2,
