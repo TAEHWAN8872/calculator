@@ -37,29 +37,41 @@
     .top-info span { font-size: 15px; font-weight: 700; color: #2c5f8a; }
 
     table {
-      width: 100%; max-width: 900px; margin: 0 auto;
-      border-collapse: collapse; background: #fff;
-      box-shadow: 0 2px 12px rgba(0,0,0,.10);
-      border-radius: 10px; overflow: hidden;
-      table-layout: auto;
+      width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+
+  border-collapse: separate;
+  border-spacing: 0;
+
+  background: #fff;
     }
-    col.c1 { width: 20%; }
-    col.c2 { width: 30%; }
-    col.c3 { width: 32%; }
-    col.c4 { width: 18%; }
+    col.c1 { width: 25%; }
+    col.c2 { width: 35%; }
+    col.c3 { width: 30%; }
+    col.c4 { width: 16%; }
 
     th, td {
-      border: 1px solid #d0d7e2;
-      padding: 7px 5px; font-size: 14px;
-      word-break: keep-all; vertical-align: middle;
-      height: 38px; line-height: 1.4;
+     border: 1px solid #d0d7e2;
+  padding: 7px 5px;
+  font-size: 12px;
+  word-break: keep-all;
+
+  vertical-align: middle !important;
     }
     thead th {
       background: #2c5f8a; color: #fff;
       text-align: center; font-weight: 700; padding: 10px 5px;
     }
 
-    .col-label { text-align: center; font-weight: 700; color: #1a1a1a; line-height: 1.4; }
+    .col-label { text-align: center;
+  font-weight: 700;
+  color: #1a1a1a;
+  line-height: 1.4;
+
+  display: table-cell;
+  vertical-align: middle !important;
+               }
     .col-sub   { text-align: left; color: #444; line-height: 1.4; }
     .col-amount { text-align: right; padding: 4px 5px; }
     .col-amount input {
@@ -516,7 +528,9 @@
     wrap.style.height = "auto";
     wrap.style.overflow = "visible";
     
-  
+  document.querySelectorAll('td[rowspan]').forEach(td => {
+  td.style.verticalAlign = 'middle';
+});
     
     // 버튼 숨기고 캡처
     wrap.classList.add('print-mode');
