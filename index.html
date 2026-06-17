@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
   <title>손익계산서</title>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }html2canvas
 
     body {
       font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
@@ -41,7 +41,7 @@
       border-collapse: collapse; background: #fff;
       box-shadow: 0 2px 12px rgba(0,0,0,.10);
       border-radius: 10px; overflow: hidden;
-      table-layout: fixed;
+      table-layout: auto;
     }
     col.c1 { width: 20%; }
     col.c2 { width: 30%; }
@@ -52,6 +52,7 @@
       border: 1px solid #d0d7e2;
       padding: 7px 5px; font-size: 12px;
       word-break: keep-all; vertical-align: middle;
+      height: 38px; line-height: 1.4;
     }
     thead th {
       background: #2c5f8a; color: #fff;
@@ -122,8 +123,14 @@
     /* 캡처 시 입력칸 깔끔하게 */
     .print-mode .top-info { margin-bottom: 16px; }
     .print-mode input {
-      background: transparent !important; border: none !important;
-      box-shadow: none !important; color: #1a3f6a !important; padding: 6px 2px !important;
+      background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  color: #1a3f6a !important;
+
+  padding: 0 !important;
+  height: auto !important;
+  line-height: 1.4 !important;
     }
 
     /* 모달 */
@@ -528,7 +535,7 @@
       const fullHeight = wrap.scrollHeight;
 
 const canvas = await html2canvas(wrap, {
-  scale: 2,
+  scale: 1.5,
   useCORS: true,
   backgroundColor: '#eef2f7',
   scrollX: 0,
