@@ -171,15 +171,16 @@
     .row-daily .col-amount span { color: #8a6d00; font-size: 15px; }
     .row-daily .col-ratio { color: #aaa; font-size: 11px; }
 
-    /* ── 저장/이미지 버튼 ── */
+    /* ── 저장/이미지/초기화 버튼 ── */
     .btn-wrap {
       max-width: 740px;
       margin: 18px auto 0;
       display: flex;
       gap: 12px;
       justify-content: center;
+      flex-wrap: wrap;
     }
-    .btn-save, .btn-img {
+    .btn-save, .btn-img, .btn-reset {
       display: flex;
       align-items: center;
       gap: 8px;
@@ -193,12 +194,14 @@
       transition: transform .1s, box-shadow .1s;
       box-shadow: 0 3px 10px rgba(0,0,0,0.15);
     }
-    .btn-save { background: #2c5f8a; color: #fff; }
-    .btn-img  { background: #27ae60; color: #fff; }
-    .btn-save:hover { background: #1a3f6a; transform: translateY(-1px); }
-    .btn-img:hover  { background: #1e8449; transform: translateY(-1px); }
-    .btn-save:active, .btn-img:active { transform: translateY(0); box-shadow: none; }
-    .btn-save svg, .btn-img svg { width:18px; height:18px; flex-shrink:0; }
+    .btn-save  { background: #2c5f8a; color: #fff; }
+    .btn-img   { background: #27ae60; color: #fff; }
+    .btn-reset { background: #e74c3c; color: #fff; }
+    .btn-save:hover  { background: #1a3f6a; transform: translateY(-1px); }
+    .btn-img:hover   { background: #1e8449; transform: translateY(-1px); }
+    .btn-reset:hover { background: #c0392b; transform: translateY(-1px); }
+    .btn-save:active, .btn-img:active, .btn-reset:active { transform: translateY(0); box-shadow: none; }
+    .btn-save svg, .btn-img svg, .btn-reset svg { width:18px; height:18px; flex-shrink:0; }
 
     /* 저장 완료 토스트 */
     #toast {
@@ -524,7 +527,13 @@
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
       <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
     </svg>
-    이미지로 저장
+    사진으로 저장
+  </button>
+  <button class="btn-reset" onclick="resetData()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.86"/>
+    </svg>
+    초기화
   </button>
 </div>
 
@@ -695,11 +704,9 @@
     recalc();
   }
 
-  /* ── 이미지로 저장 ── */
+  /* ── 이미지로 저장 (핸드폰 갤러리 직접 저장 지원) ── */
   async function saveImage() {
     const wrap = document.getElementById('capture-wrap');
-
-    // 입력칸 테두리/배경 제거해서 깔끔하게
     wrap.classList.add('print-mode');
 
     try {
@@ -708,16 +715,67 @@
         useCORS: true,
         backgroundColor: '#eef2f7'
       });
-      const link = document.createElement('a');
+
       const now = new Date();
       const ts = `${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}`;
-      link.download = `손익계산서_${ts}.png`;
-      link.href = canvas.toDataURL('image/png');
-      link.click();
-      showToast('🖼️ 이미지가 저장되었습니다!');
+      const filename = `손익계산서_${ts}.png`;
+
+      // 핸드폰: Web Share API로 갤러리에 바로 저장
+      if (navigator.canShare) {
+        canvas.toBlob(async (blob) => {
+          const file = new File([blob], filename, { type: 'image/png' });
+          if (navigator.canShare({ files: [file] })) {
+            // 공유 메뉴 열기 전에 안내 모달 표시
+            showGuideModal();
+            try {
+              await navigator.share({ files: [file], title: '손익계산서' });
+              showToast('📱 사진으로 저장되었습니다!');
+            } catch(e) {
+              // 공유 취소 시 fallback 다운로드
+              fallbackDownload(canvas, filename);
+            }
+          } else {
+            fallbackDownload(canvas, filename);
+          }
+        }, 'image/png');
+      } else {
+        // PC: 일반 다운로드
+        fallbackDownload(canvas, filename);
+      }
     } finally {
       wrap.classList.remove('print-mode');
     }
+  }
+
+  function fallbackDownload(canvas, filename) {
+    const link = document.createElement('a');
+    link.download = filename;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+    showToast('🖼️ 이미지가 저장되었습니다!');
+  }
+
+  /* ── 초기화 ── */
+  function resetData() {
+    if (!confirm('모든 입력값을 초기화하시겠습니까?')) return;
+    const ids = [
+      'days',
+      'rev_dine','rev_delivery',
+      'mat_cj','mat_egg','mat_milk','mat_leaders',
+      'del_app',
+      'ad_blog','ad_pay','ad_mom','ad_sns','ad_naver','ad_etc',
+      'lab_salary','lab_part','lab_ins',
+      'rent_rent','rent_mgmt',
+      'util_elec','util_gas','util_water',
+      'gen_welfare','gen_inet','gen_water','gen_fire','gen_food','gen_book'
+    ];
+    ids.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = '';
+    });
+    localStorage.removeItem('sonnik_data');
+    recalc();
+    showToast('🔄 초기화되었습니다!');
   }
 
   function showToast(msg) {
@@ -727,7 +785,144 @@
     setTimeout(() => t.classList.remove('show'), 2200);
   }
 
+  /* ── 사진첩 저장 안내 모달 ── */
+  function showGuideModal() {
+    document.getElementById('guide-modal').classList.add('show');
+  }
+  function closeGuideModal() {
+    document.getElementById('guide-modal').classList.remove('show');
+  }
+
   window.addEventListener('DOMContentLoaded', loadData);
 </script>
 
 <div id="toast"></div>
+
+<!-- 사진첩 저장 안내 모달 -->
+<div id="guide-modal">
+  <div class="modal-box">
+    <div class="modal-icon">📱</div>
+    <h2 class="modal-title">사진첩에 저장하는 방법</h2>
+    <div class="modal-steps">
+      <div class="step">
+        <span class="step-num">1</span>
+        <span class="step-text">공유 메뉴가 열리면 아래로 스크롤해요</span>
+      </div>
+      <div class="step">
+        <span class="step-num">2</span>
+        <span class="step-text"><b>「이미지 저장」</b> 또는 <b>「사진에 저장」</b>을 탭하세요</span>
+      </div>
+      <div class="step">
+        <span class="step-num">3</span>
+        <span class="step-text">핸드폰 사진첩(갤러리)에 자동 저장됩니다 🎉</span>
+      </div>
+    </div>
+    <div class="modal-tip">
+      💡 <b>저장 버튼이 안 보일 때</b><br>
+      공유 메뉴 아이콘 중 <b>「파일에 저장」</b>을 누르거나,<br>
+      이미지를 길게 눌러 <b>「이미지 저장」</b>을 선택하세요.
+    </div>
+    <button class="modal-close" onclick="closeGuideModal()">확인</button>
+  </div>
+</div>
+
+<style>
+  /* 모달 오버레이 */
+  #guide-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.55);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  #guide-modal.show { display: flex; }
+
+  .modal-box {
+    background: #fff;
+    border-radius: 18px;
+    padding: 28px 24px 24px;
+    max-width: 360px;
+    width: 100%;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.22);
+    text-align: center;
+    animation: popIn .22s ease;
+  }
+  @keyframes popIn {
+    from { transform: scale(.88); opacity: 0; }
+    to   { transform: scale(1);   opacity: 1; }
+  }
+
+  .modal-icon { font-size: 42px; margin-bottom: 8px; }
+
+  .modal-title {
+    font-size: 17px;
+    font-weight: 800;
+    color: #1a3f6a;
+    margin-bottom: 18px;
+  }
+
+  .modal-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 18px;
+    text-align: left;
+  }
+  .step {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    background: #f0f7ff;
+    border-radius: 10px;
+    padding: 10px 14px;
+  }
+  .step-num {
+    background: #2c5f8a;
+    color: #fff;
+    font-weight: 800;
+    font-size: 13px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .step-text {
+    font-size: 13px;
+    color: #2a2a2a;
+    line-height: 1.5;
+  }
+
+  .modal-tip {
+    background: #fff8e1;
+    border-left: 4px solid #f0b429;
+    border-radius: 8px;
+    padding: 12px 14px;
+    font-size: 12.5px;
+    color: #5a4500;
+    text-align: left;
+    line-height: 1.7;
+    margin-bottom: 20px;
+  }
+
+  .modal-close {
+    background: #2c5f8a;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 12px 40px;
+    font-size: 15px;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    width: 100%;
+    transition: background .15s;
+  }
+  .modal-close:hover { background: #1a3f6a; }
+</style>
