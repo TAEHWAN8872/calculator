@@ -79,7 +79,7 @@
     .col-label {
       text-align: center; font-weight: 700;
       vertical-align: middle; color: #1a1a1a;
-      word-break: keep-all; line-height: 1.4;
+      word-break: keep-all; line-height: 1.4; font-size: 12px;
     }
     .col-sub { text-align: left; color: #444; vertical-align: middle; line-height: 1.4; }
     .col-amount { text-align: right; vertical-align: middle; padding: 4px 6px; }
@@ -283,7 +283,7 @@
     <!-- 배달비용 -->
     <tr class="row-section">
       <td class="col-label" rowspan="2">배달비용</td>
-      <td class="col-sub">배달앱 사용료(수수료)</td>
+      <td class="col-sub">배달앱 수수료</td>
       <td class="col-amount"><input type="text" id="del_app" placeholder="0" oninput="fmtInput(this)" /></td>
       <td class="col-ratio" id="r_del_app">0%</td>
     </tr>
@@ -434,33 +434,24 @@
     </tr>
 
     <!-- 로열티 -->
-    <tr class="row-section">
-      <td class="col-label" rowspan="2">로열티(3.3%)</td>
-      <td class="col-sub"></td><td class="col-amount"></td><td class="col-ratio"></td>
-    </tr>
     <tr class="row-sub-sum">
+      <td class="col-label">로열티(3.3%)</td>
       <td class="col-sub">소계</td>
       <td class="col-amount"><span id="royalty_total">0</span></td>
       <td class="col-ratio" id="r_royalty_total">0%</td>
     </tr>
 
     <!-- 부가세 -->
-    <tr class="row-section">
-      <td class="col-label" rowspan="2">부가세(3%)</td>
-      <td class="col-sub"></td><td class="col-amount"></td><td class="col-ratio"></td>
-    </tr>
     <tr class="row-sub-sum">
+      <td class="col-label">부가세(3%)</td>
       <td class="col-sub">소계</td>
       <td class="col-amount"><span id="vat_total">0</span></td>
       <td class="col-ratio" id="r_vat_total">0%</td>
     </tr>
 
     <!-- 결제수수료 -->
-    <tr class="row-section">
-      <td class="col-label" rowspan="2">결제수수료(2%)</td>
-      <td class="col-sub"></td><td class="col-amount"></td><td class="col-ratio"></td>
-    </tr>
     <tr class="row-sub-sum">
+      <td class="col-label">결제수수료(2%)</td>
       <td class="col-sub">소계</td>
       <td class="col-amount"><span id="fee_total">0</span></td>
       <td class="col-ratio" id="r_fee_total">0%</td>
