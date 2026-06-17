@@ -5,18 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
   <title>손익계산서</title>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }html2canvas
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
       font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
-      font-size: 14px;
+      font-size: 12px;
       background: #eef2f7;
       padding: 16px 8px 32px;
     }
-    #capture-wrap{
-      display:block;
-      overflow:visible !important;
-    }
+
     h1 { text-align: center; font-size: 20px; margin-bottom: 12px; color: #1a1a1a; }
 
     .top-info {
@@ -37,41 +34,28 @@
     .top-info span { font-size: 15px; font-weight: 700; color: #2c5f8a; }
 
     table {
-      width: 100%;
-  max-width: 600px;
-  margin: 0 auto;
-
-  border-collapse: separate;
-  border-spacing: 0;
-
-  background: #fff;
+      width: 100%; max-width: 600px; margin: 0 auto;
+      border-collapse: collapse; background: #fff;
+      box-shadow: 0 2px 12px rgba(0,0,0,.10);
+      border-radius: 10px; overflow: hidden;
+      table-layout: fixed;
     }
-    col.c1 { width: 25%; }
-    col.c2 { width: 35%; }
-    col.c3 { width: 30%; }
-    col.c4 { width: 16%; }
+    col.c1 { width: 20%; }
+    col.c2 { width: 30%; }
+    col.c3 { width: 32%; }
+    col.c4 { width: 18%; }
 
     th, td {
-     border: 1px solid #d0d7e2;
-  padding: 7px 5px;
-  font-size: 12px;
-  word-break: keep-all;
-
-  vertical-align: middle !important;
+      border: 1px solid #d0d7e2;
+      padding: 7px 5px; font-size: 12px;
+      word-break: keep-all; vertical-align: middle;
     }
     thead th {
       background: #2c5f8a; color: #fff;
       text-align: center; font-weight: 700; padding: 10px 5px;
     }
 
-    .col-label { text-align: center;
-  font-weight: 700;
-  color: #1a1a1a;
-  line-height: 1.4;
-
-  display: table-cell;
-  vertical-align: middle !important;
-               }
+    .col-label { text-align: center; font-weight: 700; color: #1a1a1a; line-height: 1.4; }
     .col-sub   { text-align: left; color: #444; line-height: 1.4; }
     .col-amount { text-align: right; padding: 4px 5px; }
     .col-amount input {
@@ -83,7 +67,7 @@
     .col-amount input::placeholder { color: #a8c8e8; font-weight: 400; }
     .col-amount input:focus { outline: none; border-color: #2c5f8a; background: #dbeeff; box-shadow: 0 0 0 3px rgba(44,95,138,.18); }
     .col-amount span { display: block; padding: 6px 2px; font-size: 13px; font-weight: 700; }
-    .col-ratio { text-align: center; color: #555; font-size: 12px; white-space: nowrap; }
+    .col-ratio { text-align: center; color: #555; font-size: 11px; white-space: nowrap; }
 
     .row-section   { background: #f4f6f9; }
     .row-profit    { background: #d5ecd5; font-weight: 700; }
@@ -135,14 +119,8 @@
     /* 캡처 시 입력칸 깔끔하게 */
     .print-mode .top-info { margin-bottom: 16px; }
     .print-mode input {
-      background: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
-  color: #1a3f6a !important;
-
-  padding: 0 !important;
-  height: auto !important;
-  line-height: 1.4 !important;
+      background: transparent !important; border: none !important;
+      box-shadow: none !important; color: #1a3f6a !important; padding: 6px 2px !important;
     }
 
     /* 모달 */
@@ -183,7 +161,7 @@
 </head>
 <body>
 
-<div id="capture-wrap" style="min-height:max-content;">
+<div id="capture-wrap">
   <h1>손익계산서</h1>
 
   <div class="top-info">
@@ -523,48 +501,50 @@
     } catch(e){}
   }
 
-async function saveImage() {
+  async function saveImage() {
+    const wrap = document.getElementById('capture-wrap');
 
-  const wrap = document.getElementById('capture-wrap');
+    // 버튼 숨기고 캡처
+    wrap.classList.add('print-mode');
+    document.querySelector('.btn-wrap').style.display = 'none';
 
-  wrap.style.height = "auto";
-  wrap.style.overflow = "visible";
+    await new Promise(r => setTimeout(r, 100)); // 렌더 대기
 
-  wrap.classList.add('print-mode');
-  document.querySelector('.btn-wrap').style.display = 'none';
+    try {
+      const canvas = await html2canvas(wrap, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#eef2f7',
+        scrollX: -window.scrollX,
+        scrollY: -window.scrollY,
+        windowWidth: document.documentElement.scrollWidth,
+        windowHeight: document.documentElement.scrollHeight,
+        logging: false
+      });
 
-  await new Promise(r => setTimeout(r, 100));
+      const now = new Date();
+      const ts = `${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}`;
+      const filename = `손익계산서_${ts}.png`;
 
-  wrap.style.height = wrap.scrollHeight + "px";
-
-  try {
-
-    const canvas = await html2canvas(wrap, {
-      scale: 3,
-      useCORS: true,
-      backgroundColor: '#eef2f7',
-      scrollX: 0,
-      scrollY: -window.scrollY,
-      removeContainer: true,
-      logging: false
-    });
-
-    const now = new Date();
-    const ts =
-      `${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}`;
-
-    const filename = `손익계산서_${ts}.png`;
-
-    fallbackDownload(canvas, filename);
-
-  } finally {
-
-    wrap.style.height = "auto";
-
-    wrap.classList.remove('print-mode');
-    document.querySelector('.btn-wrap').style.display = 'flex';
+      if (navigator.canShare) {
+        canvas.toBlob(async (blob) => {
+          const file = new File([blob], filename, { type: 'image/png' });
+          if (navigator.canShare({ files: [file] })) {
+            showGuideModal();
+            try {
+              await navigator.share({ files: [file], title: '손익계산서' });
+              showToast('📱 사진으로 저장되었습니다!');
+            } catch(e) { fallbackDownload(canvas, filename); }
+          } else { fallbackDownload(canvas, filename); }
+        }, 'image/png');
+      } else {
+        fallbackDownload(canvas, filename);
+      }
+    } finally {
+      wrap.classList.remove('print-mode');
+      document.querySelector('.btn-wrap').style.display = 'flex';
+    }
   }
-}
 
   function fallbackDownload(canvas, filename) {
     const a = document.createElement('a');
