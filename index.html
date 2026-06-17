@@ -523,67 +523,48 @@
     } catch(e){}
   }
 
-  async function saveImage() {
-    const wrap = document.getElementById('capture-wrap');
+async function saveImage() {
+
+  const wrap = document.getElementById('capture-wrap');
+
+  wrap.style.height = "auto";
+  wrap.style.overflow = "visible";
+
+  wrap.classList.add('print-mode');
+  document.querySelector('.btn-wrap').style.display = 'none';
+
+  await new Promise(r => setTimeout(r, 100));
+
+  wrap.style.height = wrap.scrollHeight + "px";
+
+  try {
+
+    const canvas = await html2canvas(wrap, {
+      scale: 3,
+      useCORS: true,
+      backgroundColor: '#eef2f7',
+      scrollX: 0,
+      scrollY: -window.scrollY,
+      removeContainer: true,
+      logging: false
+    });
+
+    const now = new Date();
+    const ts =
+      `${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}`;
+
+    const filename = `손익계산서_${ts}.png`;
+
+    fallbackDownload(canvas, filename);
+
+  } finally {
+
     wrap.style.height = "auto";
-    wrap.style.overflow = "visible";
-    
-  document.querySelectorAll('td[rowspan]').forEach(td => {
-  td.style.verticalAlign = 'middle';
-});
-    
-    // 버튼 숨기고 캡처
-    wrap.classList.add('print-mode');
-    document.querySelector('.btn-wrap').style.display = 'none';
 
-    await new Promise(r => setTimeout(r, 100)); // 렌더 대기
-
-    try {
-
-       alert(
-      "scrollHeight=" + wrap.scrollHeight +
-      "\noffsetHeight=" + wrap.offsetHeight
-    );
-      
-      const fullWidth = wrap.scrollWidth;
-      const fullHeight = wrap.scrollHeight;
-
-const canvas = await html2canvas(wrap, {
-  scale: 3,
-  useCORS: true,
-  backgroundColor: '#eef2f7',
-  scrollX: 0,
-  scrollY: 0,
-  width: fullWidth,
-  height: fullHeight,
-  windowWidth: fullWidth,
-  windowHeight: fullHeight,
-  logging: false
-});
-
-      const now = new Date();
-      const ts = `${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}`;
-      const filename = `손익계산서_${ts}.png`;
-
-      if (navigator.canShare) {
-        canvas.toBlob(async (blob) => {
-          const file = new File([blob], filename, { type: 'image/png' });
-          if (navigator.canShare({ files: [file] })) {
-            showGuideModal();
-            try {
-              await navigator.share({ files: [file], title: '손익계산서' });
-              showToast('📱 사진으로 저장되었습니다!');
-            } catch(e) { fallbackDownload(canvas, filename); }
-          } else { fallbackDownload(canvas, filename); }
-        }, 'image/png');
-      } else {
-        fallbackDownload(canvas, filename);
-      }
-    } finally {
-      wrap.classList.remove('print-mode');
-      document.querySelector('.btn-wrap').style.display = 'flex';
-    }
+    wrap.classList.remove('print-mode');
+    document.querySelector('.btn-wrap').style.display = 'flex';
   }
+}
 
   function fallbackDownload(canvas, filename) {
     const a = document.createElement('a');
