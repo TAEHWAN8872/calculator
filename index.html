@@ -1,150 +1,521 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>손익계산서</title>
-<style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Malgun Gothic', sans-serif; font-size: 13px; background: #f5f5f5; color: #222; }
-  .container { max-width: 720px; margin: 30px auto; background: #fff; border-radius: 10px; padding: 24px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
-  h1 { font-size: 20px; font-weight: 700; margin-bottom: 16px; }
-  .header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: nowrap; gap: 8px; }
-  .avg-box { display: flex; align-items: center; gap: 6px; font-size: 13px; white-space: nowrap; }
-  .avg-box input { width: 48px; text-align: center; border: 1px solid #ccc; border-radius: 4px; padding: 3px 6px; font-size: 13px; }
-  table { width: 100%; border-collapse: collapse; }
-  td, th { padding: 5px 8px; border: 1px solid #ddd; }
-  th { background: #f0f0f0; font-weight: 600; text-align: center; }
-  .section-header td { background: #2c2c2a; color: #fff; font-weight: 700; }
-  .sub-header td { background: #e8e8e8; font-weight: 600; }
-  .highlight-row td { background: #fef9e7; color: #633806; font-weight: 600; }
-  .profit-row td { background: #1d9e75; color: #fff; font-weight: 700; font-size: 14px; }
-  .loss-row td { background: #e24b4a; color: #fff; font-weight: 700; font-size: 14px; }
-  .subtotal td { background: #e1f5ee; font-weight: 600; }
-  .indent { padding-left: 20px !important; color: #555; }
-  .num-col { text-align: right; min-width: 110px; }
-  .pct-col { text-align: right; width: 60px; color: #888; }
-  input[type=number] { border: none; background: transparent; text-align: right; width: 100%; font-size: 13px; color: #222; outline: none; }
-  input[type=number]:focus { background: #e8f4fd; border-radius: 4px; }
-  .result { font-weight: 600; }
-  @media (max-width: 600px) {
-    .container { margin: 10px; padding: 12px; }
-    td, th { padding: 4px 5px; font-size: 12px; }
-  }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>손익계산서</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Malgun Gothic', '맑은 고딕', sans-serif;
+      font-size: 13px;
+      background: #f5f5f5;
+      padding: 20px;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 20px;
+      margin-bottom: 12px;
+      color: #1a1a1a;
+    }
+
+    .top-info {
+      text-align: center;
+      margin-bottom: 14px;
+      font-size: 13px;
+      color: #333;
+    }
+
+    .top-info input {
+      width: 50px;
+      border: none;
+      border-bottom: 1px solid #999;
+      text-align: center;
+      font-size: 13px;
+      font-family: inherit;
+      background: transparent;
+    }
+
+    table {
+      width: 100%;
+      max-width: 700px;
+      margin: 0 auto;
+      border-collapse: collapse;
+      background: #fff;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.12);
+    }
+
+    th, td {
+      border: 1px solid #bbb;
+      padding: 5px 8px;
+      font-size: 13px;
+    }
+
+    /* 헤더 행 */
+    thead th {
+      background: #2c5f8a;
+      color: #fff;
+      text-align: center;
+      font-weight: 600;
+      font-size: 13px;
+    }
+
+    /* ── 1열 (항목) 스타일 ── */
+    .col-label {
+      text-align: center;   /* ✅ 가운데 정렬 */
+      font-weight: 600;
+      white-space: nowrap;
+      vertical-align: middle;
+    }
+
+    /* 2열 (세부항목) */
+    .col-sub {
+      text-align: left;
+      color: #333;
+      vertical-align: middle;
+    }
+
+    /* 3열 (금액) */
+    .col-amount {
+      text-align: right;
+      vertical-align: middle;
+    }
+
+    .col-amount input {
+      width: 100%;
+      text-align: right;
+      border: none;
+      font-family: inherit;
+      font-size: 13px;
+      background: transparent;
+      color: #1a1a1a;
+    }
+    .col-amount input:focus { outline: 1px solid #2c5f8a; border-radius: 2px; }
+
+    /* 4열 (비율) */
+    .col-ratio {
+      text-align: center;
+      color: #555;
+      vertical-align: middle;
+      white-space: nowrap;
+    }
+
+    /* 색상 그룹 */
+    .row-total      { background: #dce8f5; }
+    .row-subtotal   { background: #eaf3fb; }
+    .row-section    { background: #f0f0f0; }
+    .row-profit     { background: #d5ecd5; font-weight: 700; }
+    .row-operating  { background: #b8dab8; font-weight: 700; }
+    .row-highlight  { background: #fff8e1; }
+
+    /* 소계 행 */
+    .row-sub-sum .col-sub { font-weight: 600; color: #1a1a1a; }
+    .row-sub-sum { background: #e8e8e8; }
+
+    /* 일평균 매출 행 */
+    .row-daily { background: #fef9e7; }
+    .row-daily .col-label { font-weight: 600; color: #7d6608; font-size: 12px; }
+    .row-daily .col-amount { color: #7d6608; font-weight: 600; }
+    .row-daily .col-ratio  { color: #999; font-size: 11px; }
+  </style>
 </head>
 <body>
-<div class="container">
-  <div class="header-row">
-    <h1>손익계산서</h1>
-    <div class="avg-box">
-      <span>평균 영업일수</span>
-      <input type="number" id="avgDays" value="26" min="1" max="31">
-      <span>일</span>
-    </div>
-  </div>
-  <table>
-    <thead>
-      <tr>
-        <th style="width:28%">항목</th>
-        <th style="width:30%">세부 항목</th>
-        <th class="num-col">금액 (원)</th>
-        <th class="pct-col">비율</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr class="section-header"><td colspan="2">매출</td><td class="num-col result" id="r_total_sales">0</td><td class="pct-col">100%</td></tr>
-      <tr><td class="indent">내점</td><td class="indent">홀+포장</td><td class="num-col"><input type="number" id="i_hall" placeholder="0" oninput="calc()"></td><td class="pct-col" id="p_hall">0%</td></tr>
-      <tr><td class="indent">배달</td><td class="indent"></td><td class="num-col"><input type="number" id="i_delivery" placeholder="0" oninput="calc()"></td><td class="pct-col" id="p_delivery">0%</td></tr>
 
-      <tr class="highlight-row"><td colspan="2">재료비</td><td class="num-col result" id="r_cogs">0</td><td class="pct-col result" id="p_cogs">0%</td></tr>
-      <tr><td></td><td class="indent">본사물류(CJ)</td><td class="num-col"><input type="number" id="i_cj" placeholder="0" oninput="calc()"></td><td class="pct-col" id="p_cj">0%</td></tr>
-      <tr><td></td><td class="indent">계란</td><td class="num-col"><input type="number" id="i_egg" placeholder="0" oninput="calc()"></td><td class="pct-col" id="p_egg">0%</td></tr>
-      <tr><td></td><td class="indent">우유</td><td class="num-col"><input type="number" id="i_milk" placeholder="0" oninput="calc()"></td><td class="pct-col" id="p_milk">0%</td></tr>
-      <tr><td></td><td class="indent">본사발주(리더스)</td><td class="num-col"><input type="number" id="i_direct" placeholder="0" oninput="calc()"></td><td class="pct-col" id="p_direct">0%</td></tr>
+<h1>손익계산서</h1>
+<p class="top-info">평균 영업일수 <input type="number" id="days" value="" oninput="recalc()" /> 일</p>
 
-      <tr class="subtotal"><td colspan="2">매출이익</td><td class="num-col result" id="r_gross">0</td><td class="pct-col result" id="p_gross">0%</td></tr>
+<table>
+  <thead>
+    <tr>
+      <th style="width:18%">항목</th>
+      <th style="width:30%">세부 항목</th>
+      <th style="width:28%">금액 (원)</th>
+      <th style="width:14%">비율</th>
+    </tr>
+  </thead>
+  <tbody id="tbody">
 
-      <tr class="sub-header"><td colspan="2">판매비와 관리비</td><td class="num-col result" id="r_sga">0</td><td class="pct-col result" id="p_sga">0%</td></tr>
+    <!-- ===== 매출액 (주칸) ===== -->
+    <tr class="row-profit">
+      <td class="col-label" colspan="2">매출액</td>
+      <td class="col-amount"><span id="rev_total">0</span></td>
+      <td class="col-ratio">100%</td>
+    </tr>
+    <!-- 일평균 매출 -->
+    <tr class="row-daily">
+      <td class="col-label" colspan="2">일평균 매출</td>
+      <td class="col-amount"><span id="rev_daily">-</span></td>
+      <td class="col-ratio" id="r_rev_daily">-</td>
+    </tr>
+    <!-- 매출 2행 통합 -->
+    <tr class="row-highlight">
+      <td class="col-label" rowspan="2">매출</td>
+      <td class="col-sub">내점(홀 운영)</td>
+      <td class="col-amount"><input type="number" id="rev_dine" value="" oninput="recalc()" placeholder="0" /></td>
+      <td class="col-ratio" id="r_rev_dine">0%</td>
+    </tr>
+    <tr class="row-highlight">
+      <td class="col-sub">배달</td>
+      <td class="col-amount"><input type="number" id="rev_delivery" value="" oninput="recalc()" placeholder="0" /></td>
+      <td class="col-ratio" id="r_rev_delivery">0%</td>
+    </tr>
 
-      <tr><td rowspan="3">배달비용</td><td class="indent">배달 대행비</td><td class="num-col"><input type="number" id="i_deliv_fee" placeholder="0" oninput="calc()"></td><td class="pct-col" id="p_deliv_fee">0%</td></tr>
-      <tr><td class="indent">배달앱 사용료(수수료)</td><td class="num-col"><input type="number" id="i_app_fee" placeholder="0" oninput="calc()"></td><td class="pct-col" id="p_app_fee">0%</td></tr>
-      <tr class="subtotal"><td>소계</td><td class="num-col result" id="r_deliv_sub">0</td><td class="pct-col result" id="p_deliv_sub">0%</td></tr>
+    <!-- ===== 매출원가 (주칸) ===== -->
+    <tr class="row-profit">
+      <td class="col-label" colspan="2">매출원가</td>
+      <td class="col-amount"><span id="mat_total">0</span></td>
+      <td class="col-ratio" id="r_mat_total">0%</td>
+    </tr>
+    <!-- 재료비 4행 통합 -->
+    <tr>
+      <td class="col-label" rowspan="4">재료비</td>
+      <td class="col-sub">본사물류(CJ)</td>
+      <td class="col-amount"><input type="number" id="mat_cj" value="" oninput="recalc()" placeholder="0" /></td>
+      <td class="col-ratio" id="r_mat_cj">0%</td>
+    </tr>
+    <tr>
+      <td class="col-sub">계란</td>
+      <td class="col-amount"><input type="number" id="mat_egg" value="" oninput="recalc()" placeholder="0" /></td>
+      <td class="col-ratio" id="r_mat_egg">0%</td>
+    </tr>
+    <tr>
+      <td class="col-sub">우유</td>
+      <td class="col-amount"><input type="number" id="mat_milk" value="" oninput="recalc()" placeholder="0" /></td>
+      <td class="col-ratio" id="r_mat_milk">0%</td>
+    </tr>
+    <tr>
+      <td class="col-sub">본사발주(리더스)</td>
+      <td class="col-amount"><input type="number" id="mat_leaders" value="" oninput="recalc()" placeholder="0" /></td>
+      <td class="col-ratio" id="r_mat_leaders">0%</td>
+    </tr>
 
-      <tr><td rowspan="7">광고비</td><td class="indent">블로그체험단</td><td class="num-col"><input type="number" id="i_blog" placeholder="0" oninput="calc()"></td><td class="pct-col" id="p_blog">0%</td></tr>
-      <tr><td class="indent">페이히어(적립)</td><td class="num-col"><input type="number" id="i_payhere" placeholder="0" oninput="calc()"></td><td class="pct-col" id="p_payhere">0%</td></tr>
-      <tr><td class="indent">맘카페</td><td class="num-col"><input type="number" id="i_momcafe" placeholder="0" oninput="calc()"></td><td class="pct-col" id="p_momcafe">0%</td></tr>
-      <tr><td class="indent">SNS 메타광고</td><td class="num-col"><input type="number" id="i_sns" placeholder="0" oninput="calc()"></td><td class="pct-col" id="p_sns">0%</td></tr>
-      <tr><td class="indent">네이버플레이스 광고</td><td class="num-col"><input type="number" id="i_nplace" placeholder="0" oninput="calc()"></td><td class="pct-col" id="p_nplace">0%</td></tr>
-      <tr><td class="indent">기타</td><td class="num-col"><input type="number" id="i_adv_etc" placeholder="0" oninput="calc()"></td><td class="pct-col" id="p_adv_etc">0%</td></tr>
-      <tr class="subtotal"><td>소계</td><td class="num-col result" id="r_adv_sub">0</td><td class="pct-col result" id="p_adv_sub">0%</td></tr>
+    <!-- ===== 매출이익 ===== -->
+    <tr class="row-profit">
+      <td class="col-label" colspan="2">매출이익</td>
+      <td class="col-amount"><span id="gross_profit">0</span></td>
+      <td class="col-ratio" id="r_gross_profit">0%</td>
+    </tr>
 
-      <tr><td rowspan="3">인건비</td><td class="indent">급여(정직원)</td><td class="num-col"><input type="number" id="i_salary" placeholder="0" oninput="calc()"></td><td class="pct-col" id="p_salary">0%</td></tr>
-      <tr><td class="indent">파트타임</td><td class="num-col"><input type="number" id="i_parttime" placeholder="0" oninput="calc()"></td><td class="pct-col" id="p_parttime">0%</td></tr>
-      <tr><td class="indent">4대보험</td><td class="num-col"><input type="number" id="i_insurance" placeholder="0" oninput="calc()"></td><td class="pct-col" id="p_insurance">0%</td></tr>
-      <tr class="subtotal"><td></td><td>소계</td><td class="num-col result" id="r_labor_sub">0</td><td class="pct-col result" id="p_labor_sub">0%</td></tr>
+    <!-- ===== 판매비와 관리비 ===== -->
+    <tr class="row-section">
+      <td class="col-label" colspan="2">판매비와 관리비</td>
+      <td class="col-amount"><span id="sga_total">0</span></td>
+      <td class="col-ratio" id="r_sga_total">0%</td>
+    </tr>
 
-      <tr><td rowspan="2">임대료</td><td class="indent">임대료(vat포함)</td><td class="num-col"><input type="number" id="i_rent" placeholder="0" oninput="calc()"></td><td class="pct-col" id="p_rent">0%</td></tr>
-      <tr><td class="indent">건물관리비</td><td class="num-col"><input type="number" id="i_maint" placeholder="0" oninput="calc()"></td><td class="pct-col" id="p_maint">0%</td></tr>
-      <tr class="subtotal"><td></td><td>소계</td><td class="num-col result" id="r_rent_sub">0</td><td class="pct-col result" id="p_rent_sub">0%</td></tr>
+    <!-- 배달비용 -->
+    <tr class="row-section">
+      <td class="col-label" rowspan="2">배달비용</td>
+      <td class="col-sub">배달앱 사용료(수수료)</td>
+      <td class="col-amount"><input type="number" id="del_app" value="" oninput="recalc()" placeholder="0" /></td>
+      <td class="col-ratio" id="r_del_app">0%</td>
+    </tr>
+    <tr class="row-sub-sum">
+      <td class="col-sub">소계</td>
+      <td class="col-amount"><span id="del_total">0</span></td>
+      <td class="col-ratio" id="r_del_total">0%</td>
+    </tr>
 
-      <tr><td rowspan="3">수도광열비</td><td class="indent">전기</td><td class="num-col"><input type="number" id="i_elec" placeholder="0" oninput="calc()"></td><td class="pct-col" id="p_elec">0%</td></tr>
-      <tr><td class="indent">가스</td><td class="num-col"><input type="number" id="i_gas" placeholder="0" oninput="calc()"></td><td class="pct-col" id="p_gas">0%</td></tr>
-      <tr><td class="indent">수도</td><td class="num-col"><input type="number" id="i_water" placeholder="0" oninput="calc()"></td><td class="pct-col" id="p_water">0%</td></tr>
-      <tr class="subtotal"><td></td><td>소계</td><td class="num-col result" id="r_util_sub">0</td><td class="pct-col result" id="p_util_sub">0%</td></tr>
+    <!-- 광고비 -->
+    <tr class="row-section">
+      <td class="col-label" rowspan="7">광고비</td>
+      <td class="col-sub">블로그체험단</td>
+      <td class="col-amount"><input type="number" id="ad_blog" value="" oninput="recalc()" placeholder="0" /></td>
+      <td class="col-ratio" id="r_ad_blog">0%</td>
+    </tr>
+    <tr>
+      <td class="col-sub">페이히어(적립)</td>
+      <td class="col-amount"><input type="number" id="ad_pay" value="" oninput="recalc()" placeholder="0" /></td>
+      <td class="col-ratio" id="r_ad_pay">0%</td>
+    </tr>
+    <tr>
+      <td class="col-sub">맘카페</td>
+      <td class="col-amount"><input type="number" id="ad_mom" value="" oninput="recalc()" placeholder="0" /></td>
+      <td class="col-ratio" id="r_ad_mom">0%</td>
+    </tr>
+    <tr>
+      <td class="col-sub">SNS 메타광고</td>
+      <td class="col-amount"><input type="number" id="ad_sns" value="" oninput="recalc()" placeholder="0" /></td>
+      <td class="col-ratio" id="r_ad_sns">0%</td>
+    </tr>
+    <tr>
+      <td class="col-sub">네이버플레이스 광고</td>
+      <td class="col-amount"><input type="number" id="ad_naver" value="" oninput="recalc()" placeholder="0" /></td>
+      <td class="col-ratio" id="r_ad_naver">0%</td>
+    </tr>
+    <tr>
+      <td class="col-sub">기타</td>
+      <td class="col-amount"><input type="number" id="ad_etc" value="" oninput="recalc()" placeholder="0" /></td>
+      <td class="col-ratio" id="r_ad_etc">0%</td>
+    </tr>
+    <tr class="row-sub-sum">
+      <td class="col-sub">소계</td>
+      <td class="col-amount"><span id="ad_total">0</span></td>
+      <td class="col-ratio" id="r_ad_total">0%</td>
+    </tr>
 
-      <tr><td rowspan="6">일반관리비</td><td class="indent">복리후생비</td><td class="num-col"><input type="number" id="i_welfare" placeholder="0" oninput="calc()"></td><td class="pct-col" id="p_welfare">0%</td></tr>
-      <tr><td class="indent">인터넷 전화/OKPOS</td><td class="num-col"><input type="number" id="i_internet" placeholder="0" oninput="calc()"></td><td class="pct-col" id="p_internet">0%</td></tr>
-      <tr><td class="indent">정수기</td><td class="num-col"><input type="number" id="i_water2" placeholder="0" oninput="calc()"></td><td class="pct-col" id="p_water2">0%</td></tr>
-      <tr><td class="indent">화재보험</td><td class="num-col"><input type="number" id="i_fireins" placeholder="0" oninput="calc()"></td><td class="pct-col" id="p_fireins">0%</td></tr>
-      <tr><td class="indent">음식물쓰레기</td><td class="num-col"><input type="number" id="i_waste" placeholder="0" oninput="calc()"></td><td class="pct-col" id="p_waste">0%</td></tr>
-      <tr><td class="indent">기장수수료</td><td class="num-col"><input type="number" id="i_acct" placeholder="0" oninput="calc()"></td><td class="pct-col" id="p_acct">0%</td></tr>
-      <tr class="subtotal"><td></td><td>소계</td><td class="num-col result" id="r_gen_sub">0</td><td class="pct-col result" id="p_gen_sub">0%</td></tr>
+    <!-- 인건비 -->
+    <tr class="row-section">
+      <td class="col-label" rowspan="4">인건비</td>
+      <td class="col-sub">급여(정직원)</td>
+      <td class="col-amount"><input type="number" id="lab_salary" value="" oninput="recalc()" placeholder="0" /></td>
+      <td class="col-ratio" id="r_lab_salary">0%</td>
+    </tr>
+    <tr>
+      <td class="col-sub">파트타임</td>
+      <td class="col-amount"><input type="number" id="lab_part" value="" oninput="recalc()" placeholder="0" /></td>
+      <td class="col-ratio" id="r_lab_part">0%</td>
+    </tr>
+    <tr>
+      <td class="col-sub">4대보험</td>
+      <td class="col-amount"><input type="number" id="lab_ins" value="" oninput="recalc()" placeholder="0" /></td>
+      <td class="col-ratio" id="r_lab_ins">0%</td>
+    </tr>
+    <tr class="row-sub-sum">
+      <td class="col-sub">소계</td>
+      <td class="col-amount"><span id="lab_total">0</span></td>
+      <td class="col-ratio" id="r_lab_total">0%</td>
+    </tr>
 
-      <tr><td>로열티(3.3%)</td><td>소계</td><td class="num-col result" id="r_royalty">0</td><td class="pct-col result" id="p_royalty">0%</td></tr>
-      <tr><td>부가세(3%)</td><td>소계</td><td class="num-col result" id="r_vat">0</td><td class="pct-col result" id="p_vat">0%</td></tr>
-      <tr><td>총 결제 수수료(2%)</td><td>소계</td><td class="num-col result" id="r_card_fee">0</td><td class="pct-col result" id="p_card_fee">0%</td></tr>
+    <!-- 임대료 -->
+    <tr class="row-section">
+      <td class="col-label" rowspan="3">임대료</td>
+      <td class="col-sub">임대료(vat포함)</td>
+      <td class="col-amount"><input type="number" id="rent_rent" value="" oninput="recalc()" placeholder="0" /></td>
+      <td class="col-ratio" id="r_rent_rent">0%</td>
+    </tr>
+    <tr>
+      <td class="col-sub">건물관리비</td>
+      <td class="col-amount"><input type="number" id="rent_mgmt" value="" oninput="recalc()" placeholder="0" /></td>
+      <td class="col-ratio" id="r_rent_mgmt">0%</td>
+    </tr>
+    <tr class="row-sub-sum">
+      <td class="col-sub">소계</td>
+      <td class="col-amount"><span id="rent_total">0</span></td>
+      <td class="col-ratio" id="r_rent_total">0%</td>
+    </tr>
 
-      <tr id="profit_row" class="profit-row"><td colspan="2">영업이익</td><td class="num-col result" id="r_profit">0</td><td class="pct-col result" id="p_profit">0%</td></tr>
-    </tbody>
-  </table>
-</div>
+    <!-- 수도광열비 -->
+    <tr class="row-section">
+      <td class="col-label" rowspan="4">수도광열비</td>
+      <td class="col-sub">전기</td>
+      <td class="col-amount"><input type="number" id="util_elec" value="" oninput="recalc()" placeholder="0" /></td>
+      <td class="col-ratio" id="r_util_elec">0%</td>
+    </tr>
+    <tr>
+      <td class="col-sub">가스</td>
+      <td class="col-amount"><input type="number" id="util_gas" value="" oninput="recalc()" placeholder="0" /></td>
+      <td class="col-ratio" id="r_util_gas">0%</td>
+    </tr>
+    <tr>
+      <td class="col-sub">수도</td>
+      <td class="col-amount"><input type="number" id="util_water" value="" oninput="recalc()" placeholder="0" /></td>
+      <td class="col-ratio" id="r_util_water">0%</td>
+    </tr>
+    <tr class="row-sub-sum">
+      <td class="col-sub">소계</td>
+      <td class="col-amount"><span id="util_total">0</span></td>
+      <td class="col-ratio" id="r_util_total">0%</td>
+    </tr>
+
+    <!-- 일반관리비 -->
+    <tr class="row-section">
+      <td class="col-label" rowspan="7">일반관리비</td>
+      <td class="col-sub">복리후생비</td>
+      <td class="col-amount"><input type="number" id="gen_welfare" value="" oninput="recalc()" placeholder="0" /></td>
+      <td class="col-ratio" id="r_gen_welfare">0%</td>
+    </tr>
+    <tr>
+      <td class="col-sub">인터넷 전화/OKPOS</td>
+      <td class="col-amount"><input type="number" id="gen_inet" value="" oninput="recalc()" placeholder="0" /></td>
+      <td class="col-ratio" id="r_gen_inet">0%</td>
+    </tr>
+    <tr>
+      <td class="col-sub">정수기</td>
+      <td class="col-amount"><input type="number" id="gen_water" value="" oninput="recalc()" placeholder="0" /></td>
+      <td class="col-ratio" id="r_gen_water">0%</td>
+    </tr>
+    <tr>
+      <td class="col-sub">화재보험</td>
+      <td class="col-amount"><input type="number" id="gen_fire" value="" oninput="recalc()" placeholder="0" /></td>
+      <td class="col-ratio" id="r_gen_fire">0%</td>
+    </tr>
+    <tr>
+      <td class="col-sub">음식물쓰레기</td>
+      <td class="col-amount"><input type="number" id="gen_food" value="" oninput="recalc()" placeholder="0" /></td>
+      <td class="col-ratio" id="r_gen_food">0%</td>
+    </tr>
+    <tr>
+      <td class="col-sub">기장수수료</td>
+      <td class="col-amount"><input type="number" id="gen_book" value="" oninput="recalc()" placeholder="0" /></td>
+      <td class="col-ratio" id="r_gen_book">0%</td>
+    </tr>
+    <tr class="row-sub-sum">
+      <td class="col-sub">소계</td>
+      <td class="col-amount"><span id="gen_total">0</span></td>
+      <td class="col-ratio" id="r_gen_total">0%</td>
+    </tr>
+
+    <!-- 로열티 -->
+    <tr class="row-section">
+      <td class="col-label" rowspan="2">로열티(3.3%)</td>
+      <td class="col-sub"></td>
+      <td class="col-amount"></td>
+      <td class="col-ratio"></td>
+    </tr>
+    <tr class="row-sub-sum">
+      <td class="col-sub">소계</td>
+      <td class="col-amount"><span id="royalty_total">0</span></td>
+      <td class="col-ratio" id="r_royalty_total">0%</td>
+    </tr>
+
+    <!-- 부가세 -->
+    <tr class="row-section">
+      <td class="col-label" rowspan="2">부가세(3%)</td>
+      <td class="col-sub"></td>
+      <td class="col-amount"></td>
+      <td class="col-ratio"></td>
+    </tr>
+    <tr class="row-sub-sum">
+      <td class="col-sub">소계</td>
+      <td class="col-amount"><span id="vat_total">0</span></td>
+      <td class="col-ratio" id="r_vat_total">0%</td>
+    </tr>
+
+    <!-- 결제수수료 -->
+    <tr class="row-section">
+      <td class="col-label" rowspan="2">총 결제 수수료(2%)</td>
+      <td class="col-sub"></td>
+      <td class="col-amount"></td>
+      <td class="col-ratio"></td>
+    </tr>
+    <tr class="row-sub-sum">
+      <td class="col-sub">소계</td>
+      <td class="col-amount"><span id="fee_total">0</span></td>
+      <td class="col-ratio" id="r_fee_total">0%</td>
+    </tr>
+
+    <!-- ===== 영업이익 ===== -->
+    <tr class="row-operating">
+      <td class="col-label" colspan="2">영업이익</td>
+      <td class="col-amount"><span id="op_profit">0</span></td>
+      <td class="col-ratio" id="r_op_profit">0%</td>
+    </tr>
+
+  </tbody>
+</table>
+
 <script>
-function v(id){return parseFloat(document.getElementById(id).value)||0;}
-function fmt(n){return Math.round(n).toLocaleString('ko-KR');}
-function pct(n,t){return t?(n/t*100).toFixed(1)+'%':'0%';}
-function set(id,val){var el=document.getElementById(id);if(el)el.textContent=fmt(val);}
-function sp(id,val,t){var el=document.getElementById(id);if(el)el.textContent=pct(val,t);}
-function calc(){
-  var hall=v('i_hall'),del=v('i_delivery'),ts=hall+del;
-  var cj=v('i_cj'),egg=v('i_egg'),milk=v('i_milk'),dir=v('i_direct'),cogs=cj+egg+milk+dir,gross=ts-cogs;
-  var df=v('i_deliv_fee'),af=v('i_app_fee'),ds=df+af;
-  var bl=v('i_blog'),ph=v('i_payhere'),mc=v('i_momcafe'),sn=v('i_sns'),np=v('i_nplace'),ae=v('i_adv_etc'),as2=bl+ph+mc+sn+np+ae;
-  var sa=v('i_salary'),pt=v('i_parttime'),ins=v('i_insurance'),ls=sa+pt+ins;
-  var re=v('i_rent'),ma=v('i_maint'),rs=re+ma;
-  var el=v('i_elec'),ga=v('i_gas'),wa=v('i_water'),us=el+ga+wa;
-  var wf=v('i_welfare'),it=v('i_internet'),w2=v('i_water2'),fi=v('i_fireins'),ws=v('i_waste'),ac=v('i_acct'),gs=wf+it+w2+fi+ws+ac;
-  var roy=ts*0.033,vat=ts*0.03,cf=ts*0.02;
-  var sga=ds+as2+ls+rs+us+gs+roy+vat+cf,profit=gross-sga;
-  set('r_total_sales',ts);sp('p_hall',hall,ts);sp('p_delivery',del,ts);
-  set('r_cogs',cogs);sp('p_cogs',cogs,ts);sp('p_cj',cj,ts);sp('p_egg',egg,ts);sp('p_milk',milk,ts);sp('p_direct',dir,ts);
-  set('r_gross',gross);sp('p_gross',gross,ts);
-  set('r_sga',sga);sp('p_sga',sga,ts);
-  set('r_deliv_sub',ds);sp('p_deliv_sub',ds,ts);sp('p_deliv_fee',df,ts);sp('p_app_fee',af,ts);
-  set('r_adv_sub',as2);sp('p_adv_sub',as2,ts);
-  sp('p_blog',bl,ts);sp('p_payhere',ph,ts);sp('p_momcafe',mc,ts);sp('p_sns',sn,ts);sp('p_nplace',np,ts);sp('p_adv_etc',ae,ts);
-  set('r_labor_sub',ls);sp('p_labor_sub',ls,ts);sp('p_salary',sa,ts);sp('p_parttime',pt,ts);sp('p_insurance',ins,ts);
-  set('r_rent_sub',rs);sp('p_rent_sub',rs,ts);sp('p_rent',re,ts);sp('p_maint',ma,ts);
-  set('r_util_sub',us);sp('p_util_sub',us,ts);sp('p_elec',el,ts);sp('p_gas',ga,ts);sp('p_water',wa,ts);
-  set('r_gen_sub',gs);sp('p_gen_sub',gs,ts);
-  sp('p_welfare',wf,ts);sp('p_internet',it,ts);sp('p_water2',w2,ts);sp('p_fireins',fi,ts);sp('p_waste',ws,ts);sp('p_acct',ac,ts);
-  set('r_royalty',roy);sp('p_royalty',roy,ts);
-  set('r_vat',vat);sp('p_vat',vat,ts);
-  set('r_card_fee',cf);sp('p_card_fee',cf,ts);
-  set('r_profit',profit);sp('p_profit',profit,ts);
-  document.getElementById('profit_row').className=profit>=0?'profit-row':'loss-row';
-}
-calc();
+  const fmt = n => n.toLocaleString('ko-KR');
+
+  function v(id) {
+    const el = document.getElementById(id);
+    return el ? (parseFloat(el.value) || 0) : 0;
+  }
+  function set(id, val, total) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.textContent = fmt(val);
+  }
+  function ratio(id, val, total) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.textContent = total > 0 ? (val / total * 100).toFixed(1) + '%' : '0%';
+  }
+
+  function recalc() {
+    const rev = v('rev_dine') + v('rev_delivery');
+    set('rev_total', rev);
+
+    // 일평균 매출
+    const days = parseFloat(document.getElementById('days').value) || 0;
+    const dailyEl   = document.getElementById('rev_daily');
+    const dailyREl  = document.getElementById('r_rev_daily');
+    if (days > 0 && rev > 0) {
+      const daily = Math.round(rev / days);
+      dailyEl.textContent  = fmt(daily) + ' 원';
+      dailyREl.textContent = '÷ ' + days + '일';
+    } else {
+      dailyEl.textContent  = '-';
+      dailyREl.textContent = '-';
+    }
+
+    ratio('r_rev_dine',     v('rev_dine'),     rev);
+    ratio('r_rev_delivery', v('rev_delivery'),  rev);
+
+    // 재료비
+    const mat = v('mat_cj') + v('mat_egg') + v('mat_milk') + v('mat_leaders');
+    set('mat_total', mat);
+    ratio('r_mat_total',   mat,            rev);
+    ratio('r_mat_cj',      v('mat_cj'),    rev);
+    ratio('r_mat_egg',     v('mat_egg'),   rev);
+    ratio('r_mat_milk',    v('mat_milk'),  rev);
+    ratio('r_mat_leaders', v('mat_leaders'), rev);
+
+    // 매출이익
+    const gp = rev - mat;
+    set('gross_profit', gp);
+    ratio('r_gross_profit', gp, rev);
+
+    // 배달비용
+    const del = v('del_app');
+    set('del_total', del);
+    ratio('r_del_app',   v('del_app'), rev);
+    ratio('r_del_total', del,          rev);
+
+    // 광고비
+    const ad = v('ad_blog') + v('ad_pay') + v('ad_mom') + v('ad_sns') + v('ad_naver') + v('ad_etc');
+    set('ad_total', ad);
+    ['ad_blog','ad_pay','ad_mom','ad_sns','ad_naver','ad_etc'].forEach(k => ratio('r_'+k, v(k), rev));
+    ratio('r_ad_total', ad, rev);
+
+    // 인건비
+    const lab = v('lab_salary') + v('lab_part') + v('lab_ins');
+    set('lab_total', lab);
+    ['lab_salary','lab_part','lab_ins'].forEach(k => ratio('r_'+k, v(k), rev));
+    ratio('r_lab_total', lab, rev);
+
+    // 임대료
+    const rent = v('rent_rent') + v('rent_mgmt');
+    set('rent_total', rent);
+    ['rent_rent','rent_mgmt'].forEach(k => ratio('r_'+k, v(k), rev));
+    ratio('r_rent_total', rent, rev);
+
+    // 수도광열비
+    const util = v('util_elec') + v('util_gas') + v('util_water');
+    set('util_total', util);
+    ['util_elec','util_gas','util_water'].forEach(k => ratio('r_'+k, v(k), rev));
+    ratio('r_util_total', util, rev);
+
+    // 일반관리비
+    const gen = v('gen_welfare') + v('gen_inet') + v('gen_water') + v('gen_fire') + v('gen_food') + v('gen_book');
+    set('gen_total', gen);
+    ['gen_welfare','gen_inet','gen_water','gen_fire','gen_food','gen_book'].forEach(k => ratio('r_'+k, v(k), rev));
+    ratio('r_gen_total', gen, rev);
+
+    // 자동계산 항목
+    const royalty = Math.round(rev * 0.033);
+    const vat     = Math.round(rev * 0.03);
+    const fee     = Math.round(rev * 0.02);
+    set('royalty_total', royalty); ratio('r_royalty_total', royalty, rev);
+    set('vat_total',     vat);     ratio('r_vat_total',     vat,     rev);
+    set('fee_total',     fee);     ratio('r_fee_total',     fee,     rev);
+
+    // 판매비와 관리비 합계
+    const sga = del + ad + lab + rent + util + gen + royalty + vat + fee;
+    set('sga_total', sga);
+    ratio('r_sga_total', sga, rev);
+
+    // 영업이익
+    const op = gp - sga;
+    set('op_profit', op);
+    ratio('r_op_profit', op, rev);
+    document.getElementById('op_profit').style.color = op < 0 ? '#c0392b' : '#1a6b1a';
+  }
+
+  recalc();
 </script>
 </body>
 </html>
